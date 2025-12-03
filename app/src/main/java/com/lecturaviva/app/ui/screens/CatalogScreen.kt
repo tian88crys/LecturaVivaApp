@@ -17,7 +17,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.lecturaviva.app.LecturaVivaApplication
 import com.lecturaviva.app.data.model.Book
+import com.lecturaviva.app.data.repo.BookApiRepository
+import com.lecturaviva.app.data.repo.ExternalBook
 import com.lecturaviva.app.ui.components.TopBarWithHome
+
+// ⭐⭐ PANTALLA COMPLETA, LISTA PARA PEGAR ⭐⭐
 
 @Composable
 fun CatalogScreen(
@@ -27,6 +31,9 @@ fun CatalogScreen(
     val app = LocalContext.current.applicationContext as LecturaVivaApplication
     val bookRepository = app.container.bookRepository
 
+    // ------------------------------
+    // ⭐ Estados para repositorio interno
+    // ------------------------------
     var query by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf<String?>(null) }
 
@@ -40,6 +47,37 @@ fun CatalogScreen(
         isLoading = false
     }
 
+    // ------------------------------
+    // ⭐ Estados para API externa (OpenLibrary)
+    // ------------------------------
+    val apiRepository = remember { BookApiRepository() }
+
+    var externalBooks by remember { mutableStateOf<List<ExternalBook>>(emptyList()) }
+    var externalIsLoading by remember { mutableStateOf(false) }
+    var externalError by remember { mutableStateOf<String?>(null) }
+
+    // GET a OpenLibrary cada vez que cambia el texto
+    LaunchedEffect(query) {
+        if (query.isBlank()) {
+            externalBooks = emptyList()
+            externalError = null
+            externalIsLoading = false
+        } else {
+            externalIsLoading = true
+            externalError = null
+            try {
+                externalBooks = apiRepository.searchBooks(query)
+            } catch (e: Exception) {
+                externalError = e.message ?: "Error al buscar en OpenLibrary"
+            } finally {
+                externalIsLoading = false
+            }
+        }
+    }
+
+    // ------------------------------
+    // ⭐ UI COMPLETA DEL CATÁLOGO
+    // ------------------------------
     Scaffold(
         topBar = { TopBarWithHome(title = "Catálogo", nav = nav) }
     ) { padding ->
@@ -50,6 +88,8 @@ fun CatalogScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
+            // 📌 BUSCADOR
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
@@ -58,6 +98,7 @@ fun CatalogScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // 📌 FILTROS
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -79,6 +120,9 @@ fun CatalogScreen(
                 }
             }
 
+            // ------------------------------
+            // ⭐ LISTA PRINCIPAL
+            // ------------------------------
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -88,14 +132,67 @@ fun CatalogScreen(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+
+                    // 📌 Libros INTERNOS (locales)
                     items(results, key = { it.id }) { book ->
                         BookRow(book = book) { onBookClick(book.id) }
+                    }
+
+                    // ------------------------------
+                    // ⭐ API EXTERNA (OpenLibrary)
+                    // ------------------------------
+                    if (query.isNotBlank()) {
+
+                        item {
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                "Resultados externos (OpenLibrary)",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        when {
+                            externalIsLoading -> {
+                                item {
+                                    Row(
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(8.dp),
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                }
+                            }
+
+                            externalError != null -> {
+                                item {
+                                    Text(
+                                        text = "Error: $externalError",
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.padding(8.dp)
+                                    )
+                                }
+                            }
+
+                            externalBooks.isNotEmpty() -> {
+                                items(externalBooks.size) { index ->
+                                    val b = externalBooks[index]
+                                    ExternalBookRow(book = b)
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
+
+// ------------------------------
+// ⭐ COMPONENTES REUTILIZABLES
+// ------------------------------
 
 @Composable
 private fun BookRow(book: Book, onClick: () -> Unit) {
@@ -116,6 +213,29 @@ private fun BookRow(book: Book, onClick: () -> Unit) {
                 "Disponible: ${book.available}" else "Sin stock"
             Text(
                 stock,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExternalBookRow(book: ExternalBook) {
+    Card(
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text(
+                book.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text("Autor: ${book.author}", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "Fuente: OpenLibrary (API externa)",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )

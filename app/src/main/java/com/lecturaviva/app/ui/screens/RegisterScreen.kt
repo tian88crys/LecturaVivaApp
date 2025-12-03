@@ -26,46 +26,43 @@ fun RegisterScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 "Crear cuenta",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                style = MaterialTheme.typography.headlineMedium
             )
 
             TextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nombre") },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(Modifier.height(8.dp))
 
             TextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Correo electrónico") },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(Modifier.height(8.dp))
 
             TextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(Modifier.height(16.dp))
 
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
                     color = Color.Red,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 
@@ -73,6 +70,16 @@ fun RegisterScreen(
                 onClick = {
                     if (name.isBlank() || email.isBlank() || password.isBlank()) {
                         errorMessage = "Completa todos los campos"
+                        return@Button
+                    }
+
+                    if (!email.contains("@")) {
+                        errorMessage = "Ingresa un correo válido"
+                        return@Button
+                    }
+
+                    if (password.length < 4) {
+                        errorMessage = "La contraseña debe tener al menos 4 caracteres"
                         return@Button
                     }
 
@@ -100,7 +107,8 @@ fun RegisterScreen(
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     Text("Registrarse")
@@ -109,4 +117,3 @@ fun RegisterScreen(
         }
     }
 }
-

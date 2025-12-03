@@ -30,7 +30,7 @@ fun LoginScreen(
     onLogin: () -> Unit,
     onRegister: () -> Unit = {}
 ) {
-    var user by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
 
     val userRepository = remember { UserRepository() }
@@ -44,6 +44,7 @@ fun LoginScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // ---- Logo tipográfico + subtítulo ----
             Text(
                 "LeeConmigo !",
                 style = MaterialTheme.typography.titleLarge,
@@ -60,12 +61,14 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
 
+            // ---- Tarjeta: header verde + cuerpo terracota ----
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(4.dp, shape = RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
             ) {
+                // Header verde
                 Surface(color = ForestGreen, modifier = Modifier.fillMaxWidth()) {
                     Text(
                         "Login",
@@ -74,12 +77,13 @@ fun LoginScreen(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)
                     )
                 }
+                // Cuerpo terracota
                 Surface(color = Terracotta, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(18.dp)) {
                         OutlinedTextField(
-                            value = user,
-                            onValueChange = { user = it },
-                            label = { Text("Usuario:") },
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text("Correo electrónico") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -87,7 +91,7 @@ fun LoginScreen(
                         OutlinedTextField(
                             value = pass,
                             onValueChange = { pass = it },
-                            label = { Text("Contraseña:") },
+                            label = { Text("Contraseña") },
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth()
@@ -112,6 +116,7 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(10.dp))
 
+            // ---- Ilustración + CTA “Regístrate Aquí” ----
             Card(
                 shape = RoundedCornerShape(24.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -138,7 +143,7 @@ fun LoginScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = ForestGreen)
                     ) {
                         Text(
-                            "Registrate Aquí",
+                            "Regístrate Aquí",
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
@@ -156,10 +161,11 @@ fun LoginScreen(
                 )
             }
 
+            // ---- Botón Entrar ----
             Button(
                 onClick = {
-                    if (user.isBlank() || pass.isBlank()) {
-                        errorMessage = "Ingresa usuario y contraseña"
+                    if (email.isBlank() || pass.isBlank()) {
+                        errorMessage = "Ingresa correo y contraseña"
                         return@Button
                     }
 
@@ -167,7 +173,7 @@ fun LoginScreen(
                     errorMessage = null
 
                     userRepository.login(
-                        email = user,
+                        email = email,
                         password = pass
                     ) { success, error ->
                         isLoading = false
