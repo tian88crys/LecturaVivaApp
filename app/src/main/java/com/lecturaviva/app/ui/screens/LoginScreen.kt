@@ -23,6 +23,7 @@ import com.lecturaviva.app.R
 import com.lecturaviva.app.ui.theme.ForestGreen
 import com.lecturaviva.app.ui.theme.Terracotta
 import com.lecturaviva.app.ui.theme.LecturaVivaTheme
+import com.lecturaviva.app.data.repo.UserRepository
 
 @Composable
 fun LoginScreen(
@@ -32,7 +33,10 @@ fun LoginScreen(
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
 
-    // Fondo beige ya viene del Theme; por si quieres reforzar:
+    val userRepository = remember { UserRepository() }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
     Surface(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -40,7 +44,6 @@ fun LoginScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ---- Logo tipográfico + subtítulo ----
             Text(
                 "LeeConmigo !",
                 style = MaterialTheme.typography.titleLarge,
@@ -57,14 +60,12 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ---- Tarjeta: header verde + cuerpo terracota, con sombra y bordes suaves ----
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(4.dp, shape = RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
             ) {
-                // Header verde
                 Surface(color = ForestGreen, modifier = Modifier.fillMaxWidth()) {
                     Text(
                         "Login",
@@ -73,7 +74,6 @@ fun LoginScreen(
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp)
                     )
                 }
-                // Cuerpo terracota
                 Surface(color = Terracotta, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(18.dp)) {
                         OutlinedTextField(
@@ -112,7 +112,6 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(10.dp))
 
-            // ---- Ilustración + CTA “Únete aquí” con elevación y bordes redondeados ----
             Card(
                 shape = RoundedCornerShape(24.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -138,22 +137,61 @@ fun LoginScreen(
                         shape = RoundedCornerShape(50),
                         colors = ButtonDefaults.buttonColors(containerColor = ForestGreen)
                     ) {
-                        Text("Registrate Aquí", fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimary)
+                        Text(
+                            "Registrate Aquí",
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // ---- Botón Entrar a ancho completo, redondeado ----
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             Button(
-                onClick = onLogin,
+                onClick = {
+                    if (user.isBlank() || pass.isBlank()) {
+                        errorMessage = "Ingresa usuario y contraseña"
+                        return@Button
+                    }
+
+                    isLoading = true
+                    errorMessage = null
+
+                    userRepository.login(
+                        email = user,
+                        password = pass
+                    ) { success, error ->
+                        isLoading = false
+                        if (success) {
+                            onLogin()
+                        } else {
+                            errorMessage = error ?: "Error al iniciar sesión"
+                        }
+                    }
+                },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp),
                 shape = RoundedCornerShape(50)
             ) {
-                Text("Entrar", fontWeight = FontWeight.Bold)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Entrar", fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

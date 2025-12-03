@@ -9,6 +9,8 @@ object Routes {
     const val History  = "history"
     const val Profile  = "profile"
 
+    const val Register = "register"
+
     // Detalle y Reserva con parámetro
     const val BookDetail = "book/{bookId}"
     const val Reserve    = "reserve/{bookId}"

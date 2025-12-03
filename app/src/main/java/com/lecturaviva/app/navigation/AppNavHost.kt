@@ -30,7 +30,22 @@ fun AppNavHost(nav: NavHostController) {
                         restoreState = true
                     }
                 },
-                onRegister = { /* nav.navigate("register") */ }
+                onRegister = {
+                    // 🔹 AHORA SÍ NAVEGA AL REGISTRO
+                    nav.navigate(Routes.Register)
+                }
+            )
+        }
+
+        // 🔹 NUEVA PANTALLA DE REGISTRO
+        composable(Routes.Register) {
+            RegisterScreen(
+                onRegistered = {
+                    // después de registrarse volvemos al login
+                    nav.navigate(Routes.Login) {
+                        popUpTo(Routes.Register) { inclusive = true }
+                    }
+                }
             )
         }
 
