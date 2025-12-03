@@ -1,183 +1,229 @@
-# 📚 LecturaViva – Biblioteca Digital (Evaluación 2)
+🚀 README.md – LecturaViva (Versión Final para GitHub)
+# 📚 LecturaViva – Biblioteca Digital Android  
+Aplicación Android desarrollada con **Kotlin + Jetpack Compose + Firebase + Retrofit**, creada como proyecto académico para implementar:
 
-Aplicación Android (Jetpack Compose + Material3) para explorar catálogo, reservar libros, ver noticias y gestionar perfil con login/registro sencillo.
-
-> **Stack**: Kotlin · Jetpack Compose · Material3 · Navigation-Compose · DataStore (Preferences) · Kotlinx Serialization
-
----   
-
-## ✅ Requisitos de entorno
-
-- **Android Studio**: Koala / Ladybug o superior  
-- **AGP (Android Gradle Plugin)**: `8.5.2`  
-- **Kotlin**: `1.9.24` *(o 1.9.23 si ajustas el Compose Compiler; ver *Solución de problemas*)*  
-- **Compose BOM**: `2024.10.01`  
-- **Compose Compiler**: `1.5.14`  
-- **JDK / JVM**: **17** (Gradle JDK y Toolchain del proyecto)  
-- **SDK**:  
-  - `compileSdk = 34`  
-  - `targetSdk = 34`  
-  - `minSdk = 24`
+- Autenticación real con Firebase  
+- CRUD de usuarios en Firestore  
+- Consumo de API externa (OpenLibrary)  
+- Arquitectura por capas  
+- Interfaz moderna y navegación fluida  
 
 ---
 
-## 🗂️ Estructura principal del proyecto
+## 🧱 **Tecnologías principales**
+| Área | Tecnología |
+|------|------------|
+| Lenguaje | **Kotlin (JVM 17)** |
+| UI | **Jetpack Compose + Material3** |
+| Navegación | Navigation-Compose |
+| Backend | **Firebase Authentication + Firestore** |
+| API Externa | **OpenLibrary REST API (GET)** |
+| Networking | Retrofit + OkHttp |
+| Estado | State Hoisting + ViewModel (simple) |
+| Build | Gradle KTS + Compose BOM |
 
-```
+---
+
+# ✅ **Requisitos del entorno**
+
+- **Android Studio Ladybug / Koala** o superior  
+- **AGP:** 8.5.2 o mayor  
+- **Kotlin:** 1.9.24  
+- **Compose BOM:** 2024.10.01  
+- **JDK:** 17  
+- **SDK Target:** 34  
+- **Min SDK:** 24  
+
+---
+
+# 🗂️ **Estructura del Proyecto**
+
+
+
 app/
- ├─ src/main/java/com/lecturaviva/app/
- │   ├─ data/
- │   │   ├─ auth/              # Lógica de registro/login (DataStore)
- │   │   ├─ local/             # AppDataStore (wrappers)
- │   │   └─ repo/              # Repositorios (Book/Reservation + mocks)
- │   ├─ navigation/            # AppNavHost + Routes
- │   ├─ ui/
- │   │   ├─ components/        # TopBar, botones, tarjetas
- │   │   └─ screens/           # Home, Catalog, BookDetail, Reserve, News, Profile, Login, Splash, History
- │   └─ theme/                 # Colores (forest/terracota/beige), Tipografías, Shapes
- └─ build.gradle.kts
-```
+├─ src/main/java/com/lecturaviva/app/
+│ ├─ data/
+│ │ ├─ model/ # Modelos Book, ExternalBook, User
+│ │ ├─ repo/ # Firebase Repo + API Repo + Books Repo
+│ │ │ ├─ BookRepository.kt
+│ │ │ ├─ BookApiRepository.kt # Retrofit + OpenLibrary
+│ │ │ ├─ UserRepository.kt # Registro/Login Firestore
+│ │ │ ├─ ReservationRepository.kt
+│ │ └─ firebase/ # Config FirebaseApp (implícito)
+│
+│ ├─ navigation/
+│ │ ├─ Routes.kt
+│ │ └─ AppNavHost.kt
+│
+│ ├─ ui/
+│ │ ├─ components/ # TopBar, Cards, Buttons
+│ │ └─ screens/
+│ │ ├─ SplashScreen.kt
+│ │ ├─ LoginScreen.kt
+│ │ ├─ RegisterScreen.kt
+│ │ ├─ HomeScreen.kt
+│ │ ├─ CatalogScreen.kt # Conexión API externa
+│ │ ├─ BookDetailScreen.kt
+│ │ ├─ ReserveScreen.kt
+│ │ ├─ NewsScreen.kt
+│ │ ├─ HistoryScreen.kt
+│ │ └─ ProfileScreen.kt
+│
+│ └─ theme/ # Colores, Tipos, Shapes
+└─ build.gradle.kts
+
 
 ---
 
-## 🚀 Puesta en marcha
+# 🔥 **Funciones principales de la app**
 
-1. **Clonar el repo**
-   ```bash
-   git clone https://github.com/<tu-usuario>/LecturaVivaApp.git
-   cd LecturaVivaApp
-   ```
+### ✔️ **1. Login / Registro con Firebase**
+- Autenticación real vía **FirebaseAuth**
+- Registro almacenado en **Firestore → colección `users`**
+- Validación de email duplicado
+- Redirección automática al Home
 
-2. **Abrir en Android Studio**  
-   `File → Open…` y selecciona la carpeta del proyecto.
-
-3. **Configurar JDK 17 para Gradle**
-   - `File → Settings → Build, Execution, Deployment → Build Tools → Gradle`
-   - **Gradle JDK**: elige `Embedded JDK (JBR 21)` o un **JDK 17** instalado.
-
-4. **Sincronizar Gradle**
-   `File → Sync Project with Gradle Files`
-
-5. **Ejecutar en emulador o dispositivo**
-   - Crea un **AVD** (Pixel 6 / API 34 recomendado) o conecta tu teléfono con **depuración USB**.
-   - Pulsa **Run ▶︎** sobre la configuración “app”.
+### ✔️ **2. CRUD con Firestore**
+- CREATE: registro de usuario  
+- READ: validación e inicio de sesión  
+- CHECK: verificar si existe el usuario  
+- UPDATE/DELETE: base preparada para ampliar (reservas, perfiles)
 
 ---
 
-## 🏗️ Compilar APK / AAB
+# 🌐 **3. API Externa – OpenLibrary (GET)**
 
-### APK *debug*
-```bash
+Se implementa:
+
+
+
+https://openlibrary.org/search.json?q=
+<query>
+
+
+- Búsqueda por autor/título  
+- Mapeo de resultados a `ExternalBook`  
+- Fusión con catálogo interno  
+- Filtros por género  
+- Sección del catálogo 100% funcional
+
+Tecnologías:
+- Retrofit  
+- OkHttp  
+- Gson  
+
+---
+
+# 🧭 **4. Navegación y Flujo de Pantallas**
+
+| Pantalla | Propósito |
+|----------|-----------|
+| **Splash** | Carga inicial + branding |
+| **Login** | Ingreso de usuario |
+| **Register** | Crear cuenta con Firebase |
+| **Home** | Acceso general |
+| **Catalog** | Búsqueda interna + API externa |
+| **BookDetail** | Detalle y reserva |
+| **Reserve** | Formulario de reserva |
+| **History** | Historial de reservas |
+| **Profile** | Datos del usuario |
+
+---
+
+# 🎨 **5. Diseño y Estética**
+
+Paleta personalizada:
+- **ForestGreen** → Encabezados y acción  
+- **Terracotta** → Contenido principal  
+- **Beige** → Fondo suave  
+- **AccentBlue** → Elementos destacados  
+
+Basado en **Material3** + tipografía adaptada.
+
+---
+
+# 🚀 **Instalación y Ejecución**
+
+### 1. Clonar el repositorio
+
+```sh
+git clone https://github.com/<tu-usuario>/LecturaVivaApp.git
+cd LecturaVivaApp
+
+2. Abrir en Android Studio
+
+File → Open → proyecto
+
+3. Configurar JDK 17
+
+Settings → Build Tools → Gradle → JDK 17
+
+4. Sincronizar Gradle
+
+File → Sync Project with Gradle Files
+
+5. Ejecutar
+
+Run ▶︎ → app
+
+🏗️ Compilar APK / AAB
+📦 APK Debug
 ./gradlew assembleDebug
-```
-Salida: `app/build/outputs/apk/debug/app-debug.apk`
 
-### AAB *release*
-```bash
+
+Salida:
+app/build/outputs/apk/debug/app-debug.apk
+
+🔐 Build firmado (Release)
 ./gradlew bundleRelease
-```
-Salida: `app/build/outputs/bundle/release/app-release.aab`
 
----
+🧯 Solución de problemas comunes
+1️⃣ Error Kotlin / Compose Compiler
 
-## 🔐 Login / Registro (demo)
+Actualizar versiones en build.gradle.kts raíz.
 
-- **Persistencia** con **DataStore (Preferences)** + **kotlinx.serialization**.
-- **Flujo**: Splash → Login → Registro → Perfil.
-- **Cerrar sesión**: limpia DataStore y redirige al Login.
+2️⃣ LocalDate en API < 26
 
----
+Asegurar:
 
-## 📖 Catálogo y Reservas
-
-- **Catálogo**: búsqueda por título/autor + filtros de género.
-- **Reserva**: formulario con validaciones y `DatePicker`.
-- **Historial**: muestra reservas y permite cancelarlas.
-
-> Usa `java.time.LocalDate` con *desugaring* para compatibilidad API 24+.
-
----
-
-## 🧭 Navegación
-
-- **Navigation-Compose** con rutas en `Routes`.
-- `AppNavHost` define: `Splash`, `Login`, `Home`, `Catalog`, `BookDetail/{id}`, `Reserve/{id}`, `News`, `History`, `Profile`.
-
----
-
-## 🎨 Tema y estilos
-
-- **Material3** + paleta: **ForestGreen**, **Terracotta**, **Beige**, **AccentBlue**.
-- **Tipografías y shapes** definidas en `ui/theme/`.
-
----
-
-## 🧪 Datos de prueba
-
-Repositorios mock con libros y reservas precargadas.
-
----
-
-## 🧯 Solución de problemas
-
-### 1️⃣ Error de versiones Kotlin / Compose Compiler
-> `This version (1.5.14) of the Compose Compiler requires Kotlin 1.9.24 ...`
-
-**Solución:**  
-Actualiza `build.gradle.kts` raíz a:
-```kotlin
-plugins {
-  id("org.jetbrains.kotlin.android") version "1.9.24" apply false
-  id("org.jetbrains.kotlin.plugin.serialization") version "1.9.24" apply false
-}
-```
-
-### 2️⃣ No encuentra JDK 17
-Configura **Gradle JDK** en `Settings → Build Tools → Gradle → JDK = 17`.
-
-### 3️⃣ Error `LocalDate.isBefore` en API < 26
-Asegura que tienes:
-```kotlin
-coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 compileOptions { isCoreLibraryDesugaringEnabled = true }
-```
+coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
-### 4️⃣ Plugin de serialización no encontrado
-Debe estar con versión en el **gradle raíz** y sin versión en el del **módulo**.
+3️⃣ Firebase no inicializa
 
----
+Revisar que google-services.json esté en /app.
 
-## 📦 Entregables
+4️⃣ Problemas de permisos de API externa
 
-- ✅ Código funcional completo.
-- ✅ README (.md) con consideraciones.
-- ✅ APK debug (`app-debug.apk`).
-- ✅ Capturas del funcionamiento.
-- ✅ Informe y presentación según pauta.
+Verificar conexión HTTPS + logs de Retrofit.
 
----
+📦 Entregables (para la evaluación)
 
-## 👥 Autores
+✓ Código completo (GitHub)
 
-- **Cristian Padilla** – UX/UI y estructura de Compose  
-- **Pablo Reyes** – Coordinación y lógica de negocio  
-- **Matías Vargas** – Desarrollo y testing
+✓ README profesional
 
----
+✓ APK Debug
 
-## 🔧 Comandos útiles
+✓ Informe escrito
 
-```bash
-./gradlew assembleDebug      # Generar APK
-./gradlew bundleRelease      # Generar AAB
-./gradlew clean assembleDebug  # Limpiar y recompilar
-```
+✓ Presentación Canva
 
----
+✓ Demostración en clase
 
-## 🛣️ Próximos pasos
+👥 Autores
+Nombre	Rol
+Cristian Padilla	UI/UX, arquitectura Jetpack Compose, integración API
+Pablo Reyes	Lógica de negocio, soporte backend
+Matías Vargas	Testing, validaciones y flujos
+🛣️ Próximos pasos
 
-- Integrar Room + Flow.  
-- Añadir paginación y búsqueda avanzada.  
-- Implementar sincronización remota con Retrofit/Ktor.  
-- Crear tests UI (Compose UI Test).
+Implementar Room como caché local
+
+Agregar paginación y scroll infinito
+
+Mejorar la reserva usando Firestore en tiempo real
+
+Agregar tests UI con Compose Test
+
+Soporte offline con WorkManager
